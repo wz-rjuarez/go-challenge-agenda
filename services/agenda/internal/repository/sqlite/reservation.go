@@ -37,9 +37,20 @@ func (r *ReservationRepository) GetReservation(ctx context.Context, id string) (
 }
 
 // ListReservations returns reservations for a doctor overlapping [from, to].
-// TODO: implement.
 func (r *ReservationRepository) ListReservations(ctx context.Context, doctorID string, from, to time.Time) ([]*domain.Reservation, error) {
-	return nil, nil
+	var ms []models.Reservation
+	err := r.db.WithContext(ctx).
+		Where("doctor_id = ? AND starts_at < ? AND ends_at > ?", doctorID, to.UTC(), from.UTC()).
+		Find(&ms).Error
+	if err != nil {
+		return nil, err
+	}
+	reservations := make([]*domain.Reservation, len(ms))
+	for i, m := range ms {
+		m := m
+		reservations[i] = models.ReservationFromModel(&m)
+	}
+	return reservations, nil
 }
 
 func (r *ReservationRepository) UpdateReservation(ctx context.Context, res *domain.Reservation) error {
