@@ -43,6 +43,7 @@ func TestGetAvailability_HappyPath(t *testing.T) {
 
 	doctorRepo.EXPECT().GetDoctor(context.Background(), "doc-001").Return(mondayDoctor(), nil)
 	reservationRepo.EXPECT().ListReservations(context.Background(), "doc-001", dayStart, dayEnd).Return(nil, nil)
+	blockedSlotRepo.EXPECT().ListBlockedSlots(context.Background(), "doc-001", dayStart, dayEnd).Return(nil, nil)
 
 	uc := usecase.NewAvailabilityUsecase(doctorRepo, reservationRepo, blockedSlotRepo)
 
@@ -67,10 +68,9 @@ func TestGetAvailability_WithBlockedSlots(t *testing.T) {
 
 	doctorRepo.EXPECT().GetDoctor(context.Background(), "doc-001").Return(mondayDoctor(), nil)
 	reservationRepo.EXPECT().ListReservations(context.Background(), "doc-001", dayStart, dayEnd).Return(nil, nil)
-	// NOTE: this expectation will not be called until the bug is fixed
-	// blockedSlotRepo.EXPECT().ListBlockedSlots(...).Return(...)
-
-	_ = blockedSlotRepo // suppress unused warning until wired
+	blockedSlotRepo.EXPECT().ListBlockedSlots(context.Background(), "doc-001", dayStart, dayEnd).Return([]*domain.BlockedSlot{
+		{StartsAt: blockedStart, EndsAt: blockedEnd},
+	}, nil)
 
 	uc := usecase.NewAvailabilityUsecase(doctorRepo, reservationRepo, blockedSlotRepo)
 
