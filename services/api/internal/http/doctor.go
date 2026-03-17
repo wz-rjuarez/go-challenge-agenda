@@ -3,18 +3,20 @@ package http
 import (
 	"net/http"
 
-	agendav1 "go-challenge-agenda/gen/agenda/v1"
 	"go-challenge-agenda/services/api/internal/domain"
+	"go-challenge-agenda/services/api/internal/usecase"
+
+	agendav1 "go-challenge-agenda/gen/agenda/v1"
 
 	"github.com/gin-gonic/gin"
 )
 
 type DoctorHandler struct {
-	agendaClient agendav1.AgendaServiceClient
+	agendaPort usecase.AgendaPort
 }
 
-func NewDoctorHandler(client agendav1.AgendaServiceClient) *DoctorHandler {
-	return &DoctorHandler{agendaClient: client}
+func NewDoctorHandler(agendaPort usecase.AgendaPort) *DoctorHandler {
+	return &DoctorHandler{agendaPort: agendaPort}
 }
 
 // List godoc
@@ -25,7 +27,7 @@ func NewDoctorHandler(client agendav1.AgendaServiceClient) *DoctorHandler {
 // @Failure     500  {object}  map[string]string
 // @Router      /doctors [get]
 func (h *DoctorHandler) List(c *gin.Context) {
-	resp, err := h.agendaClient.ListDoctors(c.Request.Context(), &agendav1.ListDoctorsRequest{})
+	resp, err := h.agendaPort.ListDoctors(c.Request.Context(), &agendav1.ListDoctorsRequest{})
 	if err != nil {
 		_ = c.Error(err)
 		return
@@ -47,7 +49,7 @@ func (h *DoctorHandler) List(c *gin.Context) {
 // @Failure     500  {object}  map[string]string
 // @Router      /doctors/{id} [get]
 func (h *DoctorHandler) Get(c *gin.Context) {
-	resp, err := h.agendaClient.GetDoctor(c.Request.Context(), &agendav1.GetDoctorRequest{Id: c.Param("id")})
+	resp, err := h.agendaPort.GetDoctor(c.Request.Context(), &agendav1.GetDoctorRequest{Id: c.Param("id")})
 	if err != nil {
 		_ = c.Error(err)
 		return
