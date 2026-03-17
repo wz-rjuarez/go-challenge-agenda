@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"time"
 
 	agendav1 "go-challenge-agenda/gen/agenda/v1"
 	"go-challenge-agenda/services/api/internal/domain"
@@ -85,6 +86,49 @@ func (u *UserUsecase) Delete(ctx context.Context, id string) error {
 	return err
 }
 
+func (u *UserUsecase) ListReservations(ctx context.Context, userID string) ([]domain.ReservationResponse, error) {
+	// Use a wide time range to fetch all reservations for the user
+	// From 1 year ago to 1 year in the future
+	now := time.Now()
+	from := now.AddDate(-1, 0, 0)
+	to := now.AddDate(1, 0, 0)
+
+	resp, err := u.agendaClient.ListReservations(ctx, &agendav1.ListReservationsRequest{
+		PatientId: userID,
+		From:      from.Format(time.RFC3339),
+		To:        to.Format(time.RFC3339),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("agenda.ListReservations: %w", err)
+	}
+
+	reservations := make([]domain.ReservationResponse, len(resp.Reservations))
+	for i, r := range resp.Reservations {
+		reservations[i] = protoReservationToDTOForUser(r)
+	}
+	return reservations, nil
+}
+
 func protoPatientToDTO(p *agendav1.Patient) domain.UserResponse {
 	return domain.UserResponse{ID: p.Id, Name: p.Name, Phone: p.Phone, Email: p.Email}
+}
+
+func protoReservationToDTOForUser(r *agendav1.Reservation) domain.ReservationResponse {
+	typeStr := "follow_up"
+	if r.Type == agendav1.ReservationType_RESERVATION_TYPE_FIRST_VISIT {
+		typeStr = "first_visit"
+	}
+	statusStr := "confirmed"
+	if r.Status == agendav1.ReservationStatus_RESERVATION_STATUS_CANCELLED {
+		statusStr = "cancelled"
+	}
+	return domain.ReservationResponse{
+		ID:        r.Id,
+		DoctorID:  r.DoctorId,
+		PatientID: r.PatientId,
+		StartsAt:  r.StartsAt,
+		EndsAt:    r.EndsAt,
+		Type:      typeStr,
+		Status:    statusStr,
+	}
 }

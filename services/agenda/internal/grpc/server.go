@@ -124,7 +124,7 @@ func (s *Server) ListReservations(ctx context.Context, req *agendav1.ListReserva
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid to: %v", err)
 	}
-	list, err := s.reservations.List(ctx, req.DoctorId, from, to)
+	list, err := s.reservations.List(ctx, req.DoctorId, req.PatientId, from, to)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "%v", err)
 	}

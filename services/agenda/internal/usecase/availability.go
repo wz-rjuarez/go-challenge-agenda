@@ -48,7 +48,7 @@ func (u *AvailabilityUsecase) GetAvailability(
 	}
 
 	// Get existing reservations for the day
-	existing, err := u.reservations.ListReservations(ctx, doctorID, dayStart, dayEnd)
+	existing, err := u.reservations.ListReservations(ctx, doctorID, "", dayStart, dayEnd)
 	if err != nil {
 		return nil, fmt.Errorf("list reservations: %w", err)
 	}

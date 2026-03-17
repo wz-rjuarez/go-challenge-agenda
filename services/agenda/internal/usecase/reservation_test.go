@@ -40,7 +40,7 @@ func TestCreateReservation_ConflictDetected(t *testing.T) {
 	newStart := base.Add(15 * time.Minute)
 	newEnd := newStart.Add(30 * time.Minute) // SlotDuration bug: always 30m
 	reservationRepo.EXPECT().
-		ListReservations(context.Background(), "doc-001", newStart.Add(-24*time.Hour), newEnd.Add(24*time.Hour)).
+		ListReservations(context.Background(), "doc-001", "", newStart.Add(-24*time.Hour), newEnd.Add(24*time.Hour)).
 		Return([]*domain.Reservation{existing}, nil)
 
 	uc := usecase.NewReservationUsecase(reservationRepo, patientRepo)
@@ -78,7 +78,7 @@ func TestCreateReservation_BoundaryConflict(t *testing.T) {
 	// hasConflict: startsAt=10:30, endsAt=11:00 (30m bug). Window: [10:30-24h, 11:00+24h]
 	newEnd := adjacentStart.Add(30 * time.Minute) // SlotDuration bug: always 30m
 	reservationRepo.EXPECT().
-		ListReservations(context.Background(), "doc-001", adjacentStart.Add(-24*time.Hour), newEnd.Add(24*time.Hour)).
+		ListReservations(context.Background(), "doc-001", "", adjacentStart.Add(-24*time.Hour), newEnd.Add(24*time.Hour)).
 		Return([]*domain.Reservation{existing}, nil)
 	reservationRepo.EXPECT().
 		CreateReservation(context.Background(), mock.MatchedBy(func(_ *domain.Reservation) bool { return true })).
@@ -110,7 +110,7 @@ func TestCreateReservation_FirstVisitDuration(t *testing.T) {
 	// Window: [9:00-24h, 10:00+24h]
 	correctEnd := base.Add(60 * time.Minute) // FirstVisit should be 60 minutes
 	reservationRepo.EXPECT().
-		ListReservations(context.Background(), "doc-001", base.Add(-24*time.Hour), correctEnd.Add(24*time.Hour)).
+		ListReservations(context.Background(), "doc-001", "", base.Add(-24*time.Hour), correctEnd.Add(24*time.Hour)).
 		Return(nil, nil)
 	reservationRepo.EXPECT().
 		CreateReservation(context.Background(), mock.MatchedBy(func(_ *domain.Reservation) bool { return true })).

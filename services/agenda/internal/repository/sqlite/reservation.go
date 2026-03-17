@@ -36,12 +36,21 @@ func (r *ReservationRepository) GetReservation(ctx context.Context, id string) (
 	return models.ReservationFromModel(&m), nil
 }
 
-// ListReservations returns reservations for a doctor overlapping [from, to].
-func (r *ReservationRepository) ListReservations(ctx context.Context, doctorID string, from, to time.Time) ([]*domain.Reservation, error) {
+// ListReservations returns reservations overlapping [from, to].
+// If doctorID is not empty, filters by doctor_id.
+// If patientID is not empty, filters by patient_id.
+func (r *ReservationRepository) ListReservations(ctx context.Context, doctorID, patientID string, from, to time.Time) ([]*domain.Reservation, error) {
 	var ms []models.Reservation
-	err := r.db.WithContext(ctx).
-		Where("doctor_id = ? AND starts_at < ? AND ends_at > ?", doctorID, to.UTC(), from.UTC()).
-		Find(&ms).Error
+	query := r.db.WithContext(ctx).Where("starts_at < ? AND ends_at > ?", to.UTC(), from.UTC())
+
+	if doctorID != "" {
+		query = query.Where("doctor_id = ?", doctorID)
+	}
+	if patientID != "" {
+		query = query.Where("patient_id = ?", patientID)
+	}
+
+	err := query.Find(&ms).Error
 	if err != nil {
 		return nil, err
 	}

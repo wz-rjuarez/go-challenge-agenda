@@ -77,7 +77,7 @@ func (r *concurrentReservationRepo) GetReservation(_ context.Context, id string)
 	return nil, nil
 }
 
-func (r *concurrentReservationRepo) ListReservations(_ context.Context, doctorID string, from, to time.Time) ([]*domain.Reservation, error) {
+func (r *concurrentReservationRepo) ListReservations(_ context.Context, doctorID string, patientID string, from, to time.Time) ([]*domain.Reservation, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	var result []*domain.Reservation

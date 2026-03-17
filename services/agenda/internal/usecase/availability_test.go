@@ -42,7 +42,7 @@ func TestGetAvailability_HappyPath(t *testing.T) {
 	blockedSlotRepo := mocks.NewBlockedSlotRepository(t)
 
 	doctorRepo.EXPECT().GetDoctor(context.Background(), "doc-001").Return(mondayDoctor(), nil)
-	reservationRepo.EXPECT().ListReservations(context.Background(), "doc-001", dayStart, dayEnd).Return(nil, nil)
+	reservationRepo.EXPECT().ListReservations(context.Background(), "doc-001", "", dayStart, dayEnd).Return(nil, nil)
 	blockedSlotRepo.EXPECT().ListBlockedSlots(context.Background(), "doc-001", dayStart, dayEnd).Return(nil, nil)
 
 	uc := usecase.NewAvailabilityUsecase(doctorRepo, reservationRepo, blockedSlotRepo)
@@ -67,7 +67,7 @@ func TestGetAvailability_WithBlockedSlots(t *testing.T) {
 	blockedSlotRepo := mocks.NewBlockedSlotRepository(t)
 
 	doctorRepo.EXPECT().GetDoctor(context.Background(), "doc-001").Return(mondayDoctor(), nil)
-	reservationRepo.EXPECT().ListReservations(context.Background(), "doc-001", dayStart, dayEnd).Return(nil, nil)
+	reservationRepo.EXPECT().ListReservations(context.Background(), "doc-001", "", dayStart, dayEnd).Return(nil, nil)
 	blockedSlotRepo.EXPECT().ListBlockedSlots(context.Background(), "doc-001", dayStart, dayEnd).Return([]*domain.BlockedSlot{
 		{StartsAt: blockedStart, EndsAt: blockedEnd},
 	}, nil)
