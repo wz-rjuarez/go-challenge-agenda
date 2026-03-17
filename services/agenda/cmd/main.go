@@ -11,6 +11,7 @@ import (
 	agendav1 "go-challenge-agenda/gen/agenda/v1"
 	"go-challenge-agenda/services/agenda/config"
 	agendagrpc "go-challenge-agenda/services/agenda/internal/grpc"
+	"go-challenge-agenda/services/agenda/internal/repository/postgres"
 	"go-challenge-agenda/services/agenda/internal/repository/sqlite"
 	"go-challenge-agenda/services/agenda/internal/usecase"
 
@@ -26,10 +27,10 @@ func main() {
 		log.Fatalf("open db: %v", err)
 	}
 
-	if err := sqlite.Migrate(db); err != nil {
+	if err := migrateDB(db, cfg); err != nil {
 		log.Fatalf("migrate: %v", err)
 	}
-	if err := sqlite.Seed(db); err != nil {
+	if err := seedDB(db, cfg); err != nil {
 		log.Fatalf("seed: %v", err)
 	}
 
@@ -79,8 +80,30 @@ func openDB(cfg config.Config) (*gorm.DB, error) {
 	case "sqlite3":
 		return sqlite.Open(cfg.DBSource)
 	case "postgres":
-		return nil, fmt.Errorf("postgres driver not yet implemented — see services/agenda/internal/repository/postgres/")
+		return postgres.Open(cfg.DBSource)
 	default:
 		return nil, fmt.Errorf("unknown DB driver: %s", cfg.DBDriver)
+	}
+}
+
+func migrateDB(db *gorm.DB, cfg config.Config) error {
+	switch cfg.DBDriver {
+	case "sqlite3":
+		return sqlite.Migrate(db)
+	case "postgres":
+		return postgres.Migrate(db)
+	default:
+		return fmt.Errorf("unknown DB driver: %s", cfg.DBDriver)
+	}
+}
+
+func seedDB(db *gorm.DB, cfg config.Config) error {
+	switch cfg.DBDriver {
+	case "sqlite3":
+		return sqlite.Seed(db)
+	case "postgres":
+		return postgres.Seed(db)
+	default:
+		return fmt.Errorf("unknown DB driver: %s", cfg.DBDriver)
 	}
 }
