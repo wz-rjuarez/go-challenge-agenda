@@ -103,7 +103,13 @@ func (u *ReservationUsecase) resolvePatient(ctx context.Context, in CreateReserv
 }
 
 // hasConflict checks if [startsAt, endsAt) overlaps any confirmed reservation.
-// Misses: new slot contains existing, new slot ends inside existing.
+// Two time intervals overlap if: startsAt < other.EndsAt AND endsAt > other.StartsAt
+// This formula correctly handles all overlap cases:
+//   - New starts during existing
+//   - New ends during existing
+//   - New contains existing
+//   - Existing contains new
+//   - Exact match
 func (u *ReservationUsecase) hasConflict(ctx context.Context, doctorID string, startsAt, endsAt time.Time) (bool, error) {
 	// Use a wide window to retrieve candidates
 	existing, err := u.reservations.ListReservations(ctx, doctorID, startsAt.Add(-24*time.Hour), endsAt.Add(24*time.Hour))
@@ -114,7 +120,8 @@ func (u *ReservationUsecase) hasConflict(ctx context.Context, doctorID string, s
 		if int(r.Status) == int(domain.ReservationStatusCancelled) {
 			continue
 		}
-		if startsAt.After(r.StartsAt) && startsAt.Before(r.EndsAt) {
+		// Check if intervals overlap: new [startsAt, endsAt) overlaps existing [r.StartsAt, r.EndsAt)
+		if startsAt.Before(r.EndsAt) && endsAt.After(r.StartsAt) {
 			return true, nil
 		}
 	}
