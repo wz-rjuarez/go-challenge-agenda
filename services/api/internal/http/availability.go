@@ -29,15 +29,19 @@ func NewAvailabilityHandler(uc *usecase.AvailabilityUsecase) *AvailabilityHandle
 // @Failure     500   {object}  map[string]string
 // @Router      /doctors/{id}/availability [get]
 func (h *AvailabilityHandler) Get(c *gin.Context) {
-	// TODO: this handler returns stub data — wire it to the usecase.
-	c.JSON(http.StatusOK, domain.AvailabilityResponse{
-		Slots: []domain.AvailableSlot{
-			{StartsAt: "2024-03-15T09:00:00Z", EndsAt: "2024-03-15T09:30:00Z"},
-			{StartsAt: "2024-03-15T09:30:00Z", EndsAt: "2024-03-15T10:00:00Z"},
-			{StartsAt: "2024-03-15T10:00:00Z", EndsAt: "2024-03-15T10:30:00Z"},
-		},
-		FreeRanges: []domain.TimeRange{
-			{From: "2024-03-15T09:00:00Z", To: "2024-03-15T17:00:00Z"},
-		},
-	})
+	doctorID := c.Param("id")
+
+	var req domain.GetAvailabilityRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	result, err := h.uc.GetAvailability(c.Request.Context(), doctorID, req.Date, req.Type)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
 }

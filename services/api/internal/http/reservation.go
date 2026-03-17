@@ -12,12 +12,12 @@ import (
 )
 
 type ReservationHandler struct {
-	uc           *usecase.ReservationUsecase
-	agendaClient agendav1.AgendaServiceClient
+	uc     *usecase.ReservationUsecase
+	agenda usecase.AgendaPort
 }
 
-func NewReservationHandler(uc *usecase.ReservationUsecase, client agendav1.AgendaServiceClient) *ReservationHandler {
-	return &ReservationHandler{uc: uc, agendaClient: client}
+func NewReservationHandler(uc *usecase.ReservationUsecase, agenda usecase.AgendaPort) *ReservationHandler {
+	return &ReservationHandler{uc: uc, agenda: agenda}
 }
 
 // Create godoc
@@ -53,7 +53,7 @@ func (h *ReservationHandler) Create(c *gin.Context) {
 // @Failure     404  {object}  map[string]string
 // @Router      /reservations/{id} [get]
 func (h *ReservationHandler) Get(c *gin.Context) {
-	resp, err := h.agendaClient.GetReservation(c.Request.Context(), &agendav1.GetReservationRequest{
+	resp, err := h.agenda.GetReservation(c.Request.Context(), &agendav1.GetReservationRequest{
 		Id: c.Param("id"),
 	})
 	if err != nil {
@@ -87,7 +87,7 @@ func (h *ReservationHandler) List(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.agendaClient.ListReservations(c.Request.Context(), &agendav1.ListReservationsRequest{
+	resp, err := h.agenda.ListReservations(c.Request.Context(), &agendav1.ListReservationsRequest{
 		DoctorId: doctorID,
 		From:     fromStr,
 		To:       toStr,

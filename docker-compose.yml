@@ -1,16 +1,37 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    profiles: ["postgres"]
+    environment:
+      POSTGRES_DB: agenda
+      POSTGRES_USER: agenda
+      POSTGRES_PASSWORD: agenda_pass
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agenda"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   agenda:
     build:
       context: .
       dockerfile: services/agenda/Dockerfile
     environment:
       AGENDA_GRPC_ADDR: ":50051"
-      DB_DRIVER: sqlite3
-      DB_SOURCE: /data/agenda.db
+      DB_DRIVER: ${DB_DRIVER:-sqlite3}
+      DB_SOURCE: ${DB_SOURCE:-/data/agenda.db}
     volumes:
       - agenda-data:/data
     ports:
       - "50051:50051"
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: false
 
   api:
     build:
@@ -26,3 +47,4 @@ services:
 
 volumes:
   agenda-data:
+  postgres-data:

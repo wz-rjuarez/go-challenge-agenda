@@ -178,9 +178,9 @@ func (_c *ReservationRepository_GetReservation_Call) RunAndReturn(run func(conte
 	return _c
 }
 
-// ListReservations provides a mock function with given fields: ctx, doctorID, from, to
-func (_m *ReservationRepository) ListReservations(ctx context.Context, doctorID string, from time.Time, to time.Time) ([]*domain.Reservation, error) {
-	ret := _m.Called(ctx, doctorID, from, to)
+// ListReservations provides a mock function with given fields: ctx, doctorID, patientID, from, to
+func (_m *ReservationRepository) ListReservations(ctx context.Context, doctorID string, patientID string, from time.Time, to time.Time) ([]*domain.Reservation, error) {
+	ret := _m.Called(ctx, doctorID, patientID, from, to)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListReservations")
@@ -188,19 +188,19 @@ func (_m *ReservationRepository) ListReservations(ctx context.Context, doctorID 
 
 	var r0 []*domain.Reservation
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, time.Time, time.Time) ([]*domain.Reservation, error)); ok {
-		return rf(ctx, doctorID, from, to)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, time.Time, time.Time) ([]*domain.Reservation, error)); ok {
+		return rf(ctx, doctorID, patientID, from, to)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, time.Time, time.Time) []*domain.Reservation); ok {
-		r0 = rf(ctx, doctorID, from, to)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, time.Time, time.Time) []*domain.Reservation); ok {
+		r0 = rf(ctx, doctorID, patientID, from, to)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*domain.Reservation)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, time.Time, time.Time) error); ok {
-		r1 = rf(ctx, doctorID, from, to)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, time.Time, time.Time) error); ok {
+		r1 = rf(ctx, doctorID, patientID, from, to)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -216,15 +216,16 @@ type ReservationRepository_ListReservations_Call struct {
 // ListReservations is a helper method to define mock.On call
 //   - ctx context.Context
 //   - doctorID string
+//   - patientID string
 //   - from time.Time
 //   - to time.Time
-func (_e *ReservationRepository_Expecter) ListReservations(ctx interface{}, doctorID interface{}, from interface{}, to interface{}) *ReservationRepository_ListReservations_Call {
-	return &ReservationRepository_ListReservations_Call{Call: _e.mock.On("ListReservations", ctx, doctorID, from, to)}
+func (_e *ReservationRepository_Expecter) ListReservations(ctx interface{}, doctorID interface{}, patientID interface{}, from interface{}, to interface{}) *ReservationRepository_ListReservations_Call {
+	return &ReservationRepository_ListReservations_Call{Call: _e.mock.On("ListReservations", ctx, doctorID, patientID, from, to)}
 }
 
-func (_c *ReservationRepository_ListReservations_Call) Run(run func(ctx context.Context, doctorID string, from time.Time, to time.Time)) *ReservationRepository_ListReservations_Call {
+func (_c *ReservationRepository_ListReservations_Call) Run(run func(ctx context.Context, doctorID string, patientID string, from time.Time, to time.Time)) *ReservationRepository_ListReservations_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(time.Time), args[3].(time.Time))
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(time.Time), args[4].(time.Time))
 	})
 	return _c
 }
@@ -234,7 +235,7 @@ func (_c *ReservationRepository_ListReservations_Call) Return(_a0 []*domain.Rese
 	return _c
 }
 
-func (_c *ReservationRepository_ListReservations_Call) RunAndReturn(run func(context.Context, string, time.Time, time.Time) ([]*domain.Reservation, error)) *ReservationRepository_ListReservations_Call {
+func (_c *ReservationRepository_ListReservations_Call) RunAndReturn(run func(context.Context, string, string, time.Time, time.Time) ([]*domain.Reservation, error)) *ReservationRepository_ListReservations_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -3,21 +3,22 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"time"
 
 	agendav1 "go-challenge-agenda/gen/agenda/v1"
 	"go-challenge-agenda/services/api/internal/domain"
 )
 
 type UserUsecase struct {
-	agendaClient agendav1.AgendaServiceClient
+	agenda AgendaPort
 }
 
-func NewUserUsecase(client agendav1.AgendaServiceClient) *UserUsecase {
-	return &UserUsecase{agendaClient: client}
+func NewUserUsecase(agenda AgendaPort) *UserUsecase {
+	return &UserUsecase{agenda: agenda}
 }
 
 func (u *UserUsecase) List(ctx context.Context) ([]domain.UserResponse, error) {
-	resp, err := u.agendaClient.ListPatients(ctx, &agendav1.ListPatientsRequest{})
+	resp, err := u.agenda.ListPatients(ctx, &agendav1.ListPatientsRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("agenda.ListPatients: %w", err)
 	}
@@ -29,7 +30,7 @@ func (u *UserUsecase) List(ctx context.Context) ([]domain.UserResponse, error) {
 }
 
 func (u *UserUsecase) Get(ctx context.Context, id string) (*domain.UserResponse, error) {
-	resp, err := u.agendaClient.GetPatient(ctx, &agendav1.GetPatientRequest{Id: id})
+	resp, err := u.agenda.GetPatient(ctx, &agendav1.GetPatientRequest{Id: id})
 	if err != nil {
 		return nil, fmt.Errorf("agenda.GetPatient: %w", err)
 	}
@@ -38,7 +39,7 @@ func (u *UserUsecase) Get(ctx context.Context, id string) (*domain.UserResponse,
 }
 
 func (u *UserUsecase) Create(ctx context.Context, req *domain.CreateUserRequest) (*domain.UserResponse, error) {
-	resp, err := u.agendaClient.CreatePatient(ctx, &agendav1.CreatePatientRequest{
+	resp, err := u.agenda.CreatePatient(ctx, &agendav1.CreatePatientRequest{
 		Name:  req.Name,
 		Phone: req.Phone,
 		Email: req.Email,
@@ -52,7 +53,7 @@ func (u *UserUsecase) Create(ctx context.Context, req *domain.CreateUserRequest)
 
 func (u *UserUsecase) Update(ctx context.Context, id string, req *domain.UpdateUserRequest) (*domain.UserResponse, error) {
 	// First fetch the existing patient to merge fields
-	existing, err := u.agendaClient.GetPatient(ctx, &agendav1.GetPatientRequest{Id: id})
+	existing, err := u.agenda.GetPatient(ctx, &agendav1.GetPatientRequest{Id: id})
 	if err != nil {
 		return nil, fmt.Errorf("agenda.GetPatient: %w", err)
 	}
@@ -70,7 +71,7 @@ func (u *UserUsecase) Update(ctx context.Context, id string, req *domain.UpdateU
 		email = req.Email
 	}
 
-	resp, err := u.agendaClient.UpdatePatient(ctx, &agendav1.UpdatePatientRequest{
+	resp, err := u.agenda.UpdatePatient(ctx, &agendav1.UpdatePatientRequest{
 		Id: id, Name: name, Phone: phone, Email: email,
 	})
 	if err != nil {
@@ -81,10 +82,53 @@ func (u *UserUsecase) Update(ctx context.Context, id string, req *domain.UpdateU
 }
 
 func (u *UserUsecase) Delete(ctx context.Context, id string) error {
-	_, err := u.agendaClient.DeletePatient(ctx, &agendav1.DeletePatientRequest{Id: id})
+	_, err := u.agenda.DeletePatient(ctx, &agendav1.DeletePatientRequest{Id: id})
 	return err
+}
+
+func (u *UserUsecase) ListReservations(ctx context.Context, userID string) ([]domain.ReservationResponse, error) {
+	// Use a wide time range to fetch all reservations for the user
+	// From 1 year ago to 1 year in the future
+	now := time.Now()
+	from := now.AddDate(-1, 0, 0)
+	to := now.AddDate(1, 0, 0)
+
+	resp, err := u.agenda.ListReservations(ctx, &agendav1.ListReservationsRequest{
+		PatientId: userID,
+		From:      from.Format(time.RFC3339),
+		To:        to.Format(time.RFC3339),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("agenda.ListReservations: %w", err)
+	}
+
+	reservations := make([]domain.ReservationResponse, len(resp.Reservations))
+	for i, r := range resp.Reservations {
+		reservations[i] = protoReservationToDTOForUser(r)
+	}
+	return reservations, nil
 }
 
 func protoPatientToDTO(p *agendav1.Patient) domain.UserResponse {
 	return domain.UserResponse{ID: p.Id, Name: p.Name, Phone: p.Phone, Email: p.Email}
+}
+
+func protoReservationToDTOForUser(r *agendav1.Reservation) domain.ReservationResponse {
+	typeStr := "follow_up"
+	if r.Type == agendav1.ReservationType_RESERVATION_TYPE_FIRST_VISIT {
+		typeStr = "first_visit"
+	}
+	statusStr := "confirmed"
+	if r.Status == agendav1.ReservationStatus_RESERVATION_STATUS_CANCELLED {
+		statusStr = "cancelled"
+	}
+	return domain.ReservationResponse{
+		ID:        r.Id,
+		DoctorID:  r.DoctorId,
+		PatientID: r.PatientId,
+		StartsAt:  r.StartsAt,
+		EndsAt:    r.EndsAt,
+		Type:      typeStr,
+		Status:    statusStr,
+	}
 }

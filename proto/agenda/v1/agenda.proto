@@ -37,8 +37,8 @@ message Doctor {
 
 message WorkingHours {
   int32 weekday = 1; // 0=Sunday … 6=Saturday
-  string from = 2;   // "09:00"
-  string to = 3;     // "17:00"
+  string from = 2; // "09:00"
+  string to = 3; // "17:00"
 }
 
 message Patient {
@@ -53,7 +53,7 @@ message Reservation {
   string doctor_id = 2;
   string patient_id = 3;
   string starts_at = 4; // RFC3339
-  string ends_at = 5;   // RFC3339
+  string ends_at = 5; // RFC3339
   ReservationType type = 6;
   ReservationStatus status = 7;
 }
@@ -62,7 +62,7 @@ message BlockedSlot {
   string id = 1;
   string doctor_id = 2;
   string starts_at = 3; // RFC3339
-  string ends_at = 4;   // RFC3339
+  string ends_at = 4; // RFC3339
   string reason = 5;
   RecurrenceType recurrence_type = 6;
   string recurrence_until = 7; // RFC3339, empty = no recurrence
@@ -80,11 +80,17 @@ message TimeRange {
 
 // ─── Request / Response messages ─────────────────────────────────────────────
 
-message GetDoctorRequest { string id = 1; }
-message GetDoctorResponse { Doctor doctor = 1; }
+message GetDoctorRequest {
+  string id = 1;
+}
+message GetDoctorResponse {
+  Doctor doctor = 1;
+}
 
 message ListDoctorsRequest {}
-message ListDoctorsResponse { repeated Doctor doctors = 1; }
+message ListDoctorsResponse {
+  repeated Doctor doctors = 1;
+}
 
 message GetAvailabilityRequest {
   string doctor_id = 1;
@@ -104,40 +110,58 @@ message CreateBlockedSlotRequest {
   RecurrenceType recurrence_type = 5;
   string recurrence_until = 6;
 }
-message CreateBlockedSlotResponse { BlockedSlot blocked_slot = 1; }
+message CreateBlockedSlotResponse {
+  BlockedSlot blocked_slot = 1;
+}
 
 message ListBlockedSlotsRequest {
   string doctor_id = 1;
   string from = 2; // RFC3339
-  string to = 3;   // RFC3339
+  string to = 3; // RFC3339
 }
-message ListBlockedSlotsResponse { repeated BlockedSlot blocked_slots = 1; }
+message ListBlockedSlotsResponse {
+  repeated BlockedSlot blocked_slots = 1;
+}
 
-message DeleteBlockedSlotRequest { string id = 1; }
+message DeleteBlockedSlotRequest {
+  string id = 1;
+}
 message DeleteBlockedSlotResponse {}
 
-message GetPatientRequest { string id = 1; }
-message GetPatientResponse { Patient patient = 1; }
+message GetPatientRequest {
+  string id = 1;
+}
+message GetPatientResponse {
+  Patient patient = 1;
+}
 
 message ListPatientsRequest {}
-message ListPatientsResponse { repeated Patient patients = 1; }
+message ListPatientsResponse {
+  repeated Patient patients = 1;
+}
 
 message CreatePatientRequest {
-  string name  = 1;
+  string name = 1;
   string phone = 2;
   string email = 3;
 }
-message CreatePatientResponse { Patient patient = 1; }
+message CreatePatientResponse {
+  Patient patient = 1;
+}
 
 message UpdatePatientRequest {
-  string id    = 1;
-  string name  = 2;
+  string id = 1;
+  string name = 2;
   string phone = 3;
   string email = 4;
 }
-message UpdatePatientResponse { Patient patient = 1; }
+message UpdatePatientResponse {
+  Patient patient = 1;
+}
 
-message DeletePatientRequest { string id = 1; }
+message DeletePatientRequest {
+  string id = 1;
+}
 message DeletePatientResponse {}
 
 message CreateReservationRequest {
@@ -151,19 +175,30 @@ message CreateReservationRequest {
   // Set if patient already exists
   string patient_id = 7;
 }
-message CreateReservationResponse { Reservation reservation = 1; }
+message CreateReservationResponse {
+  Reservation reservation = 1;
+}
 
-message GetReservationRequest { string id = 1; }
-message GetReservationResponse { Reservation reservation = 1; }
+message GetReservationRequest {
+  string id = 1;
+}
+message GetReservationResponse {
+  Reservation reservation = 1;
+}
 
 message ListReservationsRequest {
   string doctor_id = 1;
-  string from = 2;
-  string to = 3;
+  string patient_id = 2;
+  string from = 3;
+  string to = 4;
 }
-message ListReservationsResponse { repeated Reservation reservations = 1; }
+message ListReservationsResponse {
+  repeated Reservation reservations = 1;
+}
 
-message CancelReservationRequest { string id = 1; }
+message CancelReservationRequest {
+  string id = 1;
+}
 message CancelReservationResponse {}
 
 // TODO: add UpdateReservationRequest / UpdateReservationResponse

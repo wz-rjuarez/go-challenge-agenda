@@ -2,20 +2,35 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 
 	agendav1 "go-challenge-agenda/gen/agenda/v1"
 	"go-challenge-agenda/services/api/internal/domain"
 )
 
-// AvailabilityUsecase is coupled to the concrete gRPC client type.
-// Candidates should extract an AgendaPort interface and inject it.
-type AvailabilityUsecase struct {
-	agendaClient agendav1.AgendaServiceClient
+// AgendaPort defines the interface for communicating with the agenda service.
+// This abstracts away the concrete gRPC client implementation.
+type AgendaPort interface {
+	GetAvailability(ctx context.Context, req *agendav1.GetAvailabilityRequest) (*agendav1.GetAvailabilityResponse, error)
+	CreateReservation(ctx context.Context, req *agendav1.CreateReservationRequest) (*agendav1.CreateReservationResponse, error)
+	CancelReservation(ctx context.Context, req *agendav1.CancelReservationRequest) (*agendav1.CancelReservationResponse, error)
+	GetReservation(ctx context.Context, req *agendav1.GetReservationRequest) (*agendav1.GetReservationResponse, error)
+	ListReservations(ctx context.Context, req *agendav1.ListReservationsRequest) (*agendav1.ListReservationsResponse, error)
+	ListDoctors(ctx context.Context, req *agendav1.ListDoctorsRequest) (*agendav1.ListDoctorsResponse, error)
+	GetDoctor(ctx context.Context, req *agendav1.GetDoctorRequest) (*agendav1.GetDoctorResponse, error)
+	ListPatients(ctx context.Context, req *agendav1.ListPatientsRequest) (*agendav1.ListPatientsResponse, error)
+	GetPatient(ctx context.Context, req *agendav1.GetPatientRequest) (*agendav1.GetPatientResponse, error)
+	CreatePatient(ctx context.Context, req *agendav1.CreatePatientRequest) (*agendav1.CreatePatientResponse, error)
+	UpdatePatient(ctx context.Context, req *agendav1.UpdatePatientRequest) (*agendav1.UpdatePatientResponse, error)
+	DeletePatient(ctx context.Context, req *agendav1.DeletePatientRequest) (*agendav1.DeletePatientResponse, error)
 }
 
-func NewAvailabilityUsecase(client agendav1.AgendaServiceClient) *AvailabilityUsecase {
-	return &AvailabilityUsecase{agendaClient: client}
+// AvailabilityUsecase handles availability-related business logic.
+type AvailabilityUsecase struct {
+	agenda AgendaPort
+}
+
+func NewAvailabilityUsecase(agenda AgendaPort) *AvailabilityUsecase {
+	return &AvailabilityUsecase{agenda: agenda}
 }
 
 func (u *AvailabilityUsecase) GetAvailability(ctx context.Context, doctorID, date, resType string) (*domain.AvailabilityResponse, error) {
@@ -24,13 +39,13 @@ func (u *AvailabilityUsecase) GetAvailability(ctx context.Context, doctorID, dat
 		pbType = agendav1.ReservationType_RESERVATION_TYPE_FIRST_VISIT
 	}
 
-	resp, err := u.agendaClient.GetAvailability(ctx, &agendav1.GetAvailabilityRequest{
+	resp, err := u.agenda.GetAvailability(ctx, &agendav1.GetAvailabilityRequest{
 		DoctorId:        doctorID,
 		Date:            date,
 		ReservationType: pbType,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("agenda.GetAvailability: %w", err)
+		return nil, err
 	}
 
 	result := &domain.AvailabilityResponse{}

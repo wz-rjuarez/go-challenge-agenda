@@ -17,12 +17,33 @@ Both services share a single Go module. Proto definitions live in `proto/` and g
 # Generate proto code (requires buf)
 make proto
 
-# Run with Docker Compose
+# Run with Docker Compose (SQLite)
 make docker-up
+
+# Run with PostgreSQL
+make docker-up-postgres
 
 # API available at http://localhost:8080
 # Agenda gRPC at localhost:50051
 ```
+
+## Database Configuration
+
+The system supports both SQLite and PostgreSQL, switchable via environment variables:
+
+**SQLite (default):**
+```bash
+DB_DRIVER=sqlite3
+DB_SOURCE=agenda.db
+```
+
+**PostgreSQL:**
+```bash
+DB_DRIVER=postgres
+DB_SOURCE="host=localhost user=agenda password=agenda_pass dbname=agenda port=5432 sslmode=disable"
+```
+
+Both databases share the same business logic and repository interfaces. No code changes required to switch between them.
 
 ## API routes
 
